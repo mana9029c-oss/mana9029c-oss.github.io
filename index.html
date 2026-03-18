@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bot Journal — Picol Futures Grid</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --white: #ffffff;
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e8e4dc;
+      --text: #1a1814;
+      --muted: #8a8680;
+      --accent: #00c896;
+      --accent-dim: #e6faf5;
+      --accent2: #ff6b35;
+      --accent2-dim: #fff1ec;
+      --tag-bg: #f0ede6;
+      --shadow: 0 2px 20px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.10);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(247,246,242,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.3px;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .nav-links a {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 20px;
+      transition: all 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--border); }
+    .nav-cta {
+      background: var(--text) !important;
+      color: var(--white) !important;
+      font-weight: 600 !important;
+    }
+    .nav-cta:hover { background: #333 !important; }
+
+    /* HERO */
+    .hero {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 64px 32px 48px;
+    }
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: var(--accent-dim);
+      padding: 4px 12px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .hero-eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1px;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: var(--accent);
+    }
+    .hero-sub {
+      font-size: 16px;
+      color: var(--muted);
+      max-width: 520px;
+      margin-bottom: 32px;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+    .hero-sub strong { color: var(--text); font-weight: 500; }
+
+    /* STATS BAR */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      max-width: 900px;
+      margin: 0 auto 48px;
+      padding: 0 32px;
+    }
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-value.green { color: var(--accent); }
+    .stat-value.orange { color: var(--accent2); }
+    .stat-meta {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* CTA BUTTONS */
+    .cta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: 900px;
+      margin: 0 auto 56px;
+      padding: 0 32px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--text);
+      color: var(--white);
+    }
+    .btn-primary:hover { background: #333; transform: translateY(-1px); }
+    .btn-green {
+      background: var(--accent);
+      color: var(--white);
+    }
+    .btn-green:hover { background: #00b084; transform: translateY(-1px); }
+    .btn-outline {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: var(--text); transform: translateY(-1px); }
+    .btn-tg {
+      background: #229ED9;
+      color: var(--white);
+    }
+    .btn-tg:hover { background: #1a8ec2; transform: translateY(-1px); }
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    /* DIVIDER */
+    .section-divider {
+      max-width: 900px;
+      margin: 0 auto 40px;
+      padding: 0 32px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .section-divider h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      white-space: nowrap;
+      letter-spacing: -0.3px;
+    }
+    .section-divider h2 span {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      font-size: 14px;
+      color: var(--muted);
+      margin-left: 8px;
+      letter-spacing: 0;
+    }
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* LOG ENTRIES */
+    .log-feed {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 32px 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .log-entry {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .log-entry:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .log-entry::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 4px; height: 100%;
+      background: var(--accent);
+      border-radius: 4px 0 0 4px;
+    }
+    .log-entry.day-1::before { background: var(--accent2); }
+
+    .log-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .log-day-badge {
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: var(--tag-bg);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .log-date {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+    .log-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+    .log-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 20px;
+      font-weight: 300;
+    }
+    .log-desc strong { color: var(--text); font-weight: 500; }
+
+    .log-metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .metric-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 10px;
+      background: var(--tag-bg);
+      color: var(--text);
+    }
+    .metric-chip.profit {
+      background: var(--accent-dim);
+      color: #007a5a;
+    }
+    .metric-chip.warning {
+      background: var(--accent2-dim);
+      color: #c04a1a;
+    }
+    .metric-chip .dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.6;
+    }
+
+    .log-screenshot {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--tag-bg);
+      min-height: 160px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .log-screenshot:hover { border-color: var(--accent); }
+    .screenshot-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 400;
+      padding: 40px;
+      text-align: center;
+    }
+    .screenshot-placeholder svg { width: 32px; height: 32px; opacity: 0.4; }
+    .log-screenshot img {
+      width: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    /* LANG TOGGLE */
+    .lang-note {
+      font-size: 11px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+    footer a { color: var(--muted); text-decoration: underline; }
+    footer strong { color: var(--text); font-weight: 500; }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      nav { padding: 0 16px; }
+      .hero, .stats-bar, .cta-row, .section-divider, .log-feed { padding-left: 16px; padding-right: 16px; }
+      .hero { padding-top: 40px; padding-bottom: 32px; }
+      .nav-links .hide-mobile { display: none; }
+      .log-entry { padding: 20px; }
+    }
+
+    /* FADE IN */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .hero, .stats-bar, .cta-row { animation: fadeUp 0.5s ease both; }
+    .stats-bar { animation-delay: 0.1s; }
+    .cta-row { animation-delay: 0.2s; }
+    .log-entry { animation: fadeUp 0.4s ease both; }
+    .log-entry:nth-child(1) { animation-delay: 0.05s; }
+    .log-entry:nth-child(2) { animation-delay: 0.1s; }
+    .log-entry:nth-child(3) { animation-delay: 0.15s; }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">Bot<span>Journal</span></a>
+  <div class="nav-links">
+    <a href="#log" class="hide-mobile">기록 / Log</a>
+    <a href="https://t.me/+hqhBHiLZmtwxNmY1" class="hide-mobile">텔레그램</a>
+    <a href="https://share.picol.com/s/CtVXn4Wm?l=en" class="nav-cta btn">봇 설정 복사</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">🤖 Live Bot · Picol Futures Grid · BTC/USDT</div>
+  <h1>AI가 대신 매매합니다.<br/><em>매일 기록합니다.</em></h1>
+  <p class="hero-sub">
+    피콜 거래소 퓨처 그리드봇을 직접 운영하며 <strong>매일 실제 결과를 공개</strong>합니다.<br/>
+    설정 복사 링크로 누구나 동일한 봇을 시작할 수 있습니다.<br/>
+    <span class="lang-note">Running a Futures Grid bot on Picol. Daily results, publicly shared.</span>
+  </p>
+</section>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-label">시작일 / Start</div>
+    <div class="stat-value" style="font-size:18px;">Mar 13</div>
+    <div class="stat-meta">2026 · 09:17 KST</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">투자금 / Investment</div>
+    <div class="stat-value">3,075</div>
+    <div class="stat-meta">USDT</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">총 수익 / Total Profit</div>
+    <div class="stat-value green">+309.79</div>
+    <div class="stat-meta">USDT · +10.07%</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">누적 체결 / Rounds</div>
+    <div class="stat-value orange">472</div>
+    <div class="stat-meta">회 체결 completed</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">청산가 / Liq. Price</div>
+    <div class="stat-value" style="font-size:18px;">63,774</div>
+    <div class="stat-meta">USDT · 10x Long</div>
+  </div>
+</div>
+
+<!-- CTA BUTTONS -->
+<div class="cta-row">
+  <a href="https://share.picol.com/s/CtVXn4Wm?l=en" class="btn btn-green" target="_blank">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+    봇 설정 복사하기 / Copy Bot Settings
+  </a>
+  <a href="https://www.picol.com/en/signUp?r=0W8Fh5BRLkS" class="btn btn-primary" target="_blank">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+    피콜 가입 (수수료 할인) / Join Picol
+  </a>
+  <a href="https://t.me/+hqhBHiLZmtwxNmY1" class="btn btn-tg" target="_blank">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.012 9.483c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.24 14.658l-2.95-.924c-.642-.2-.654-.642.136-.95l11.532-4.448c.534-.194 1.001.13.604.912z"/></svg>
+    텔레그램 참여 / Join Telegram
+  </a>
+  <a href="https://www.youtube.com/@Drbitman17" class="btn btn-outline" target="_blank">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 00-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 00.502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 002.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 002.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+    유튜브 채널 / YouTube
+  </a>
+</div>
+
+<!-- LOG SECTION -->
+<div class="section-divider" id="log">
+  <h2>운영 일지 <span>/ Daily Log</span></h2>
+  <div class="divider-line"></div>
+</div>
+
+<div class="log-feed">
+
+  <!-- DAY 5 -->
+  <div class="log-entry">
+    <div class="log-header">
+      <div>
+        <div class="log-day-badge">Day 5 · Mar 18, 2026</div>
+      </div>
+      <div class="log-date">최종 업데이트 / Last updated: 18:00 KST</div>
+    </div>
+    <div class="log-title">5일째 — 누적 수익 +10.07%</div>
+    <div class="log-desc">
+      봇이 오늘도 조용히 일하고 있습니다. 비트코인 가격 <strong>74,350 USDT</strong> 유지 중.
+      그리드 수익과 트렌드 수익 모두 안정적으로 쌓이는 중입니다.<br/>
+      <em>Bot running steadily. BTC holding above 74k. Both grid & trend profits accumulating.</em>
+    </div>
+    <div class="log-metrics">
+      <span class="metric-chip profit"><span class="dot"></span>총 수익 +309.79 USDT (+10.07%)</span>
+      <span class="metric-chip profit"><span class="dot"></span>그리드 +68.04 USDT</span>
+      <span class="metric-chip profit"><span class="dot"></span>트렌드 +241.75 USDT</span>
+      <span class="metric-chip"><span class="dot"></span>체결 472회</span>
+      <span class="metric-chip warning"><span class="dot"></span>청산가 63,774 USDT</span>
+    </div>
+    <div class="log-screenshot">
+      <div class="screenshot-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        스크린샷 업로드 예정<br/><span style="font-size:11px;">Screenshot coming soon</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 1 REBALANCE -->
+  <div class="log-entry day-1">
+    <div class="log-header">
+      <div>
+        <div class="log-day-badge" style="background:#fff1ec;color:#c04a1a;">재투자 · Mar 13, 2026 — 22:32</div>
+      </div>
+      <div class="log-date">이벤트 / Event</div>
+    </div>
+    <div class="log-title">13시간 만에 +383 USDT → 즉시 재투자</div>
+    <div class="log-desc">
+      봇 시작 13시간 만에 <strong>383.25 USDT</strong> 수익 확인.
+      출금하지 않고 전액 재투자. 가격 범위를 64,000~86,000으로 조정하고 증거금에 추가.
+      투자금이 커질수록 체결당 수익이 늘어나는 복리 구조를 활용하기 위해서입니다.<br/>
+      <em>+383 USDT after 13hrs. Reinvested fully. Adjusted price range. Compounding in action.</em>
+    </div>
+    <div class="log-metrics">
+      <span class="metric-chip profit"><span class="dot"></span>재투자 +383.25 USDT</span>
+      <span class="metric-chip"><span class="dot"></span>범위 조정 64k–86k</span>
+      <span class="metric-chip"><span class="dot"></span>소요 시간 5분 미만</span>
+    </div>
+    <div class="log-screenshot">
+      <div class="screenshot-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        스크린샷 업로드 예정<br/><span style="font-size:11px;">Screenshot coming soon</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY 1 START -->
+  <div class="log-entry">
+    <div class="log-header">
+      <div>
+        <div class="log-day-badge">Day 1 · Mar 13, 2026 — 09:17</div>
+      </div>
+      <div class="log-date">시작 / Start</div>
+    </div>
+    <div class="log-title">봇 시작 — 2,692.11 USDT 투입</div>
+    <div class="log-desc">
+      BTC 가격 <strong>71,555 USDT</strong>에서 봇을 시작했습니다.
+      가격 범위 64,000~86,000, 181개 그리드, 10x 롱 포지션.
+      레버리지가 높은 만큼 청산 가격을 먼저 확인하고 시작했습니다.<br/>
+      <em>Bot started at BTC 71,555. Range 64k–86k, 181 grids, 10x Long. Checked liquidation price first.</em>
+    </div>
+    <div class="log-metrics">
+      <span class="metric-chip"><span class="dot"></span>투자금 2,692.11 USDT</span>
+      <span class="metric-chip"><span class="dot"></span>시작가 71,555 USDT</span>
+      <span class="metric-chip"><span class="dot"></span>181 그리드</span>
+      <span class="metric-chip warning"><span class="dot"></span>레버리지 10x</span>
+    </div>
+    <div class="log-screenshot">
+      <div class="screenshot-placeholder">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        스크린샷 업로드 예정<br/><span style="font-size:11px;">Screenshot coming soon</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <strong>BotJournal</strong> · Picol Futures Grid BTC/USDT<br/>
+  이 페이지는 실제 운영 기록이며 투자 권유가 아닙니다. 투자에는 원금 손실 위험이 있습니다.<br/>
+  <em>This is a personal trading log, not financial advice. Crypto trading involves significant risk.</em><br/><br/>
+  <a href="https://share.picol.com/s/CtVXn4Wm?l=en" target="_blank">봇 설정 복사</a> ·
+  <a href="https://www.picol.com/en/signUp?r=0W8Fh5BRLkS" target="_blank">피콜 가입</a> ·
+  <a href="https://t.me/+hqhBHiLZmtwxNmY1" target="_blank">텔레그램</a>
+</footer>
+
+</body>
+</html>
