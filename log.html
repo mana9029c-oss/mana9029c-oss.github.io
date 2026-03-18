@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>운영 일지 / Daily Log — BotJournal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f7f6f2;
+      --surface: #ffffff;
+      --border: #e8e4dc;
+      --text: #1a1814;
+      --muted: #8a8680;
+      --accent: #00c896;
+      --accent-dim: #e6faf5;
+      --accent2: #ff6b35;
+      --accent2-dim: #fff1ec;
+      --tag-bg: #f0ede6;
+      --shadow: 0 2px 20px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 40px rgba(0,0,0,0.10);
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(247,246,242,0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px; height: 60px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: 'Syne', sans-serif; font-weight: 800;
+      font-size: 16px; color: var(--text); text-decoration: none;
+    }
+    .nav-logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 8px; align-items: center; }
+    .nav-links a {
+      font-size: 13px; font-weight: 500; color: var(--muted);
+      text-decoration: none; padding: 6px 12px; border-radius: 20px; transition: all 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); background: var(--border); }
+    .nav-links a.active { color: var(--text); background: var(--border); }
+    .nav-cta { background: var(--text) !important; color: #fff !important; font-weight: 600 !important; }
+    .nav-cta:hover { background: #333 !important; }
+
+    /* PAGE HEADER */
+    .page-header {
+      max-width: 860px; margin: 0 auto;
+      padding: 52px 32px 36px;
+      animation: fadeUp 0.4s ease both;
+    }
+    .page-header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 800; letter-spacing: -0.8px;
+      margin-bottom: 8px;
+    }
+    .page-header h1 span { color: var(--accent); }
+    .page-header p {
+      font-size: 14px; color: var(--muted); font-weight: 300;
+    }
+
+    /* SUMMARY STRIP */
+    .summary-strip {
+      max-width: 860px; margin: 0 auto 40px;
+      padding: 0 32px;
+      display: flex; flex-wrap: wrap; gap: 10px;
+      animation: fadeUp 0.4s ease 0.1s both;
+    }
+    .summary-chip {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 12px; padding: 12px 18px;
+      display: flex; flex-direction: column; gap: 2px;
+      box-shadow: var(--shadow);
+    }
+    .summary-chip .label {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .summary-chip .value {
+      font-family: 'Syne', sans-serif; font-size: 18px;
+      font-weight: 700; color: var(--text); line-height: 1;
+    }
+    .summary-chip .value.green { color: var(--accent); }
+
+    /* TABLE */
+    .table-wrap {
+      max-width: 860px; margin: 0 auto 48px;
+      padding: 0 32px;
+      animation: fadeUp 0.4s ease 0.15s both;
+    }
+    .log-table {
+      width: 100%; border-collapse: collapse;
+      background: var(--surface); border-radius: 16px;
+      overflow: hidden; box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    .log-table thead tr {
+      background: var(--tag-bg);
+      border-bottom: 1px solid var(--border);
+    }
+    .log-table th {
+      padding: 12px 16px; text-align: left;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted);
+    }
+    .log-table td {
+      padding: 14px 16px; font-size: 13px;
+      border-bottom: 1px solid var(--border); vertical-align: middle;
+    }
+    .log-table tr:last-child td { border-bottom: none; }
+    .log-table tr:hover td { background: #faf9f6; }
+    .profit { color: #007a5a; font-weight: 600; font-family: 'Syne', sans-serif; }
+    .neutral { color: var(--muted); font-weight: 400; }
+    .date-cell { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 13px; }
+    .comment-cell { color: var(--muted); font-size: 12px; font-weight: 300; max-width: 200px; }
+    .rounds-cell { font-family: 'Syne', sans-serif; color: var(--accent2); font-weight: 600; }
+    .thumb {
+      width: 56px; height: 40px; border-radius: 6px;
+      object-fit: cover; border: 1px solid var(--border);
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+      display: block;
+    }
+    .thumb:hover { transform: scale(1.05); box-shadow: var(--shadow-lg); }
+    .no-img {
+      width: 56px; height: 40px; border-radius: 6px;
+      background: var(--tag-bg); border: 1px dashed var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; color: var(--muted); text-align: center; line-height: 1.3;
+    }
+    .event-badge {
+      display: inline-block; font-size: 10px; font-weight: 600;
+      padding: 2px 8px; border-radius: 10px;
+      background: var(--accent2-dim); color: var(--accent2);
+      letter-spacing: 0.04em;
+    }
+
+    /* CARD FEED */
+    .cards-section {
+      max-width: 860px; margin: 0 auto;
+      padding: 0 32px 80px;
+    }
+    .section-label {
+      font-family: 'Syne', sans-serif; font-size: 13px;
+      font-weight: 700; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .section-label::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    .log-cards { display: flex; flex-direction: column; gap: 16px; }
+
+    .log-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; padding: 24px; box-shadow: var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative; overflow: hidden;
+      animation: fadeUp 0.4s ease both;
+    }
+    .log-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .log-card::before {
+      content: ''; position: absolute; top: 0; left: 0;
+      width: 4px; height: 100%;
+      background: var(--accent); border-radius: 4px 0 0 4px;
+    }
+    .log-card.event::before { background: var(--accent2); }
+
+    .card-top {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; gap: 12px; margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .card-date {
+      font-family: 'Syne', sans-serif; font-size: 15px;
+      font-weight: 700; letter-spacing: -0.2px;
+    }
+    .card-day { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 2px; }
+
+    .card-metrics {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;
+    }
+    .chip {
+      font-size: 12px; font-weight: 500; padding: 5px 10px;
+      border-radius: 8px; background: var(--tag-bg); color: var(--text);
+    }
+    .chip.green { background: var(--accent-dim); color: #007a5a; }
+    .chip.orange { background: var(--accent2-dim); color: #c04a1a; }
+
+    .card-comment {
+      font-size: 13px; color: var(--muted); font-weight: 300;
+      line-height: 1.7; margin-bottom: 14px;
+    }
+    .card-comment strong { color: var(--text); font-weight: 500; }
+
+    .card-img {
+      border-radius: 10px; overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .card-img img { width: 100%; display: block; }
+    .card-img-placeholder {
+      background: var(--tag-bg); height: 120px;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 6px;
+      color: var(--muted); font-size: 12px; font-weight: 300;
+    }
+    .card-img-placeholder svg { width: 24px; height: 24px; opacity: 0.35; }
+
+    /* LIGHTBOX */
+    .lightbox {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); z-index: 999;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .lightbox.open { display: flex; }
+    .lightbox img {
+      max-width: 90vw; max-height: 85vh;
+      border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    .lightbox-close {
+      position: absolute; top: 20px; right: 24px;
+      color: #fff; font-size: 28px; cursor: pointer;
+      font-family: 'Syne', sans-serif; font-weight: 300; line-height: 1;
+    }
+
+    /* FOOTER */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 28px 32px; text-align: center;
+      font-size: 12px; color: var(--muted); line-height: 1.8;
+    }
+    footer a { color: var(--muted); text-decoration: underline; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .log-card:nth-child(1) { animation-delay: 0.05s; }
+    .log-card:nth-child(2) { animation-delay: 0.1s; }
+    .log-card:nth-child(3) { animation-delay: 0.15s; }
+    .log-card:nth-child(4) { animation-delay: 0.2s; }
+
+    @media (max-width: 600px) {
+      nav, .page-header, .summary-strip, .table-wrap, .cards-section { padding-left: 16px; padding-right: 16px; }
+      .log-table { display: none; }
+      .nav-links .hide-mobile { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">Bot<span>Journal</span></a>
+  <div class="nav-links">
+    <a href="index.html" class="hide-mobile">홈 / Home</a>
+    <a href="log.html" class="active hide-mobile">기록 / Log</a>
+    <a href="https://t.me/+hqhBHiLZmtwxNmY1">텔레그램</a>
+    <a href="https://share.picol.com/s/CtVXn4Wm?l=en" class="nav-cta">봇 설정 복사</a>
+  </div>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <h1>운영 일지 <span>/ Daily Log</span></h1>
+  <p>피콜 퓨처 그리드봇 실제 운영 기록 · Actual daily records of the Picol Futures Grid Bot</p>
+</div>
+
+
+
+<!-- TABLE (데스크탑) -->
+<div class="table-wrap">
+  <table class="log-table">
+    <thead>
+      <tr>
+        <th>날짜 / Date</th>
+        <th>수익 / Profit</th>
+        <th>수익률 / Return</th>
+        <th>체결 / Rounds</th>
+        <th>코멘트 / Comment</th>
+        <th>스크린샷</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><div class="date-cell">Mar 18</div><div class="neutral" style="font-size:11px;">Day 5</div></td>
+        <td class="profit">+309.79 USDT</td>
+        <td class="profit">+10.07%</td>
+        <td class="rounds-cell">472회</td>
+        <td class="comment-cell">봇 안정적 운행 중. BTC 74,350 유지.</td>
+        <td><div class="no-img">준비중</div></td>
+      </tr>
+      <tr>
+        <td>
+          <div class="date-cell">Mar 13</div>
+          <div style="margin-top:4px;"><span class="event-badge">재투자</span></div>
+        </td>
+        <td class="profit">+383.25 USDT</td>
+        <td class="profit">—</td>
+        <td class="rounds-cell">—</td>
+        <td class="comment-cell">13시간 만에 수익 확인. 전액 재투자 및 가격 범위 조정.</td>
+        <td><div class="no-img">준비중</div></td>
+      </tr>
+      <tr>
+        <td><div class="date-cell">Mar 13</div><div class="neutral" style="font-size:11px;">시작 / Start</div></td>
+        <td class="neutral">—</td>
+        <td class="neutral">—</td>
+        <td class="neutral">—</td>
+        <td class="comment-cell">2,692 USDT 투입. BTC 71,555에서 봇 시작.</td>
+        <td><div class="no-img">준비중</div></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- CARD FEED -->
+<div class="cards-section">
+  <div class="section-label">상세 기록 / Detailed Log</div>
+  <div class="log-cards">
+
+    <!-- Day 5 -->
+    <div class="log-card">
+      <div class="card-top">
+        <div>
+          <div class="card-date">Mar 18, 2026</div>
+          <div class="card-day">Day 5 · 18:00 KST</div>
+        </div>
+      </div>
+      <div class="card-metrics">
+        <span class="chip green">총 수익 +309.79 USDT</span>
+        <span class="chip green">+10.07%</span>
+        <span class="chip">그리드 +68.04</span>
+        <span class="chip">트렌드 +241.75</span>
+        <span class="chip orange">체결 472회</span>
+        <span class="chip">청산가 63,774</span>
+      </div>
+      <div class="card-comment">
+        봇 안정적으로 운행 중. <strong>BTC 74,350 USDT</strong> 유지. 그리드·트렌드 수익 모두 누적 중.<br/>
+        <em style="font-size:12px;">Bot running steadily. BTC holding 74k. Both profit types accumulating.</em>
+      </div>
+      <div class="card-img">
+        <div class="card-img-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          스크린샷 업로드 예정
+        </div>
+      </div>
+    </div>
+
+    <!-- 재투자 -->
+    <div class="log-card event">
+      <div class="card-top">
+        <div>
+          <div class="card-date">Mar 13, 2026 — 22:32</div>
+          <div class="card-day"><span class="event-badge">재투자 이벤트 / Reinvestment</span></div>
+        </div>
+      </div>
+      <div class="card-metrics">
+        <span class="chip orange">재투자 +383.25 USDT</span>
+        <span class="chip">범위 조정 64k–86k</span>
+        <span class="chip">소요 5분 미만</span>
+      </div>
+      <div class="card-comment">
+        봇 시작 <strong>13시간</strong> 만에 수익 383.25 USDT 확인. 출금하지 않고 전액 재투자.
+        가격 범위 64,000~86,000으로 조정. 복리 효과를 위해 증거금에 추가.<br/>
+        <em style="font-size:12px;">+383 USDT after 13hrs. Fully reinvested. Range adjusted to 64k–86k.</em>
+      </div>
+      <div class="card-img">
+        <div class="card-img-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          스크린샷 업로드 예정
+        </div>
+      </div>
+    </div>
+
+    <!-- Day 1 Start -->
+    <div class="log-card">
+      <div class="card-top">
+        <div>
+          <div class="card-date">Mar 13, 2026 — 09:17</div>
+          <div class="card-day">Day 1 · 봇 시작 / Bot Started</div>
+        </div>
+      </div>
+      <div class="card-metrics">
+        <span class="chip">투자금 2,692.11 USDT</span>
+        <span class="chip">시작가 71,555 USDT</span>
+        <span class="chip">181 그리드</span>
+        <span class="chip orange">레버리지 10x</span>
+        <span class="chip">청산가 확인 완료</span>
+      </div>
+      <div class="card-comment">
+        BTC 가격 <strong>71,555 USDT</strong>에서 봇 시작. 가격 범위 64,000~86,000, 181개 구간.
+        레버리지 10배 설정 — 청산 가격 먼저 확인 후 시작.<br/>
+        <em style="font-size:12px;">Bot started at BTC 71,555. Range 64k–86k, 181 grids, 10x Long.</em>
+      </div>
+      <div class="card-img">
+        <div class="card-img-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          스크린샷 업로드 예정
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lightbox-close">×</div>
+  <img id="lightbox-img" src="" alt="screenshot"/>
+</div>
+
+<footer>
+  <strong>BotJournal</strong> · Picol Futures Grid BTC/USDT<br/>
+  이 페이지는 실제 운영 기록이며 투자 권유가 아닙니다. 투자에는 원금 손실 위험이 있습니다.<br/>
+  <em>Personal trading log only. Not financial advice. Crypto involves significant risk.</em><br/><br/>
+  <a href="https://share.picol.com/s/CtVXn4Wm?l=en">봇 설정 복사</a> ·
+  <a href="https://www.picol.com/en/signUp?r=0W8Fh5BRLkS">피콜 가입</a> ·
+  <a href="https://t.me/+hqhBHiLZmtwxNmY1">텔레그램</a> ·
+  <a href="https://www.youtube.com/@Drbitman17">유튜브</a>
+</footer>
+
+<script>
+  function openLightbox(src) {
+    document.getElementById('lightbox-img').src = src;
+    document.getElementById('lightbox').classList.add('open');
+  }
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
+</script>
+</body>
+</html>
